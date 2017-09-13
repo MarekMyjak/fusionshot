@@ -1,0 +1,9 @@
+{
+  "name": "fusionshot",
+  "scripts": {
+    "build": "gulp build",
+    "start": "gulp run",
+    "watch": "gulp watch",
+    "test": "gulp test"
+  }
+}
