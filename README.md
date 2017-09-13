@@ -49,8 +49,7 @@ docker run -it -p 3000:3000 fusionshot
 ---
 
 ## License
-This project was based on agar.io-clone, check [here](https://github.com/huytd/agar.io-clone)
-This project is licensed under the terms of the **MIT** license.
+This project was based on agar.io-clone, check [here](https://github.com/huytd/agar.io-clone). This project is licensed under the terms of the **MIT** license.
 
 >You can check out the full license [here](https://github.com/huytd/agar.io-clone/blob/master/LICENSE).
 

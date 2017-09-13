@@ -144,8 +144,8 @@ roundFoodSetting.onchange = settings.toggleRoundFood;
 var c = window.canvas.canvas;
 var graph = c.getContext('2d');
 
-$("#feed").click(function () {
-    socket.emit('1');
+$("#shoot").click(function () {
+    socket.emit('shootMissile');
     window.canvas.reenviar = false;
 });
 

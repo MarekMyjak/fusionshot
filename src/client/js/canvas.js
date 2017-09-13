@@ -154,6 +154,7 @@ class Canvas {
 
     shootMissile() {
         this.parent.socket.emit('shootMissile');
+        window.canvas.reenviar = false;
     }
 }
 

@@ -334,8 +334,8 @@ io.on('connection', function (socket) {
         setTimeout(function () {
             currentPlayer.canShoot = true;
         }, 500);
-        const masa = config.fireFood;
-        const speed = 50;
+        const masa = 10;
+        const speed = 15;
         let direction = calculateDirection(currentPlayer.target.x, currentPlayer.target.y, speed);
         missiles.push({
             id: currentPlayer.id,
