@@ -3,6 +3,8 @@ fusionshot
 
 A simple game built with socket.IO and HTML5 canvas on top of NodeJS.
 
+## Try it [here] (https://fusionshot.herokuapp.com/)
+
 ## How to Play
 Move your mouse around the screen to move your cell.
 Click left mouse button to shoot a missile.
