@@ -113,7 +113,9 @@ var player = {
     y: global.screenHeight / 2,
     screenWidth: global.screenWidth,
     screenHeight: global.screenHeight,
-    target: {x: global.screenWidth / 2, y: global.screenHeight / 2}
+    target: {x: global.screenWidth / 2, y: global.screenHeight / 2},
+    health: 100,
+    attackDamage: 10
 };
 global.player = player;
 
@@ -259,7 +261,7 @@ function setupSocket(socket) {
             player.x = playerData.x;
             player.y = playerData.y;
             player.hue = playerData.hue;
-            player.massTotal = playerData.massTotal;
+            player.score = playerData.score;
             player.cell = playerData.cell;
             player.xoffset = isNaN(xoffset) ? 0 : xoffset;
             player.yoffset = isNaN(yoffset) ? 0 : yoffset;
@@ -290,8 +292,8 @@ function setupSocket(socket) {
         socket.close();
     });
 
-    socket.on('virusSplit', function (virusCell) {
-        socket.emit('splitCell', virusCell);
+    socket.on("increaseScore", function (scoreGain) {
+        socket.emit('splitCell', scoreGain);
         reenviar = false;
     });
 }

@@ -146,7 +146,7 @@ io.on('connection', function (socket) {
     var position = config.newPlayerInitialPosition == 'farthest' ? util.uniformPosition(users, radius) : util.randomPosition(radius);
 
     var cell = {};
-    var massTotal = 0;
+    var score = 0;
     if (type === 'player') {
         cell = {
             mass: config.defaultPlayerMass,
@@ -154,7 +154,6 @@ io.on('connection', function (socket) {
             y: position.y,
             radius: radius
         };
-        massTotal = config.defaultPlayerMass;
     }
 
 
@@ -165,7 +164,7 @@ io.on('connection', function (socket) {
         w: config.defaultPlayerMass,
         h: config.defaultPlayerMass,
         cell: cell,
-        massTotal: massTotal,
+        score: 0,
         hue: Math.round(Math.random() * 360),
         type: type,
         lastHeartbeat: new Date().getTime(),
@@ -173,7 +172,9 @@ io.on('connection', function (socket) {
             x: 0,
             y: 0
         },
-        canShoot: true
+        canShoot: true,
+        health: 100,
+        attackDamage: 10
     };
 
     socket.on('gotit', function (player) {
@@ -203,11 +204,11 @@ io.on('connection', function (socket) {
                     y: position.y,
                     radius: radius
                 };
-                player.massTotal = config.defaultPlayerMass;
+                player.score = 0;
             }
             else {
                 player.cell = {};
-                player.massTotal = 0;
+                player.score = 0;
             }
             player.hue = Math.round(Math.random() * 360);
             currentPlayer = player;
@@ -347,7 +348,7 @@ io.on('connection', function (socket) {
             distanceTraveled: 0,
             radius: util.massToRadius(masa),
             speed: speed,
-            damage: 20
+            attackDamage: 20,
         });
     });
 });
@@ -411,7 +412,7 @@ function tickPlayer(currentPlayer) {
         currentCell.speed = 6.25;
     masaGanada += (foodEaten.length * config.foodMass);
     currentCell.mass += masaGanada;
-    currentPlayer.massTotal += masaGanada;
+    currentPlayer.score += masaGanada;
     currentCell.radius = util.massToRadius(currentCell.mass);
     playerCircle.r = currentCell.radius;
 
@@ -434,7 +435,7 @@ function moveloop() {
 function gameloop() {
     if (users.length > 0) {
         users.sort(function (a, b) {
-            return b.massTotal - a.massTotal;
+            return b.score - a.score;
         });
 
         var topUsers = [];
@@ -461,9 +462,9 @@ function gameloop() {
             }
         }
         for (i = 0; i < users.length; i++) {
-            if (users[i].cell.mass * (1 - (config.massLossRate / 1000)) > config.defaultPlayerMass && users[i].massTotal > config.minMassLoss) {
+            if (users[i].cell.mass * (1 - (config.massLossRate / 1000)) > config.defaultPlayerMass && users[i].score > config.minMassLoss) {
                 var massLoss = users[i].cell.mass * (1 - (config.massLossRate / 1000));
-                users[i].massTotal -= users[i].cell.mass - massLoss;
+                users[i].score -= users[i].cell.mass - massLoss;
                 users[i].cell.mass = massLoss;
             }
         }
@@ -500,8 +501,6 @@ function sendUpdates() {
 
         visibleMissile.forEach(function (missile) {
             function collisionCheck(user, missile) {
-                let response = new SAT.Response();
-
                 function checkIfCircleColide() {
                     return SAT.testCircleCircle(new C(
                         new V(user.cell.x, user.cell.y),
@@ -509,20 +508,32 @@ function sendUpdates() {
                     ), new C(
                         new V(missile.x, missile.y),
                         missile.radius
-                    ), response);
+                    ), null);
+                }
+
+                function userDied(user) {
+                    return user.health <= 0;
+                }
+
+                function removeMissile() {
+                    var missileMumber = util.findIndex(users, user.id);
+                    missiles.splice(missileMumber, 1);
                 }
 
                 if (user.id == missile.id) {
                     return;
                 }
-                if (checkIfCircleColide()){
-                    var userNumber = util.findIndex(users, user.id);
-                    users.splice(userNumber, 1);
-                    io.emit('playerDied', { name: user.name });
-                    sockets[user.id].emit('RIP');
-
-                    var missileMumber = util.findIndex(users, user.id);
-                    missiles.splice(missileMumber, 1);
+                if (checkIfCircleColide()) {
+                    let scoreGain = missile.attackDamage;
+                    user.health -= missile.attackDamage;
+                    if (userDied(user, missile)) {
+                        var userNumber = util.findIndex(users, user.id);
+                        users.splice(userNumber, 1);
+                        io.emit('playerDied', {name: user.name});
+                        sockets[user.id].emit('RIP');
+                    }
+                    util.findElement(users, missile.id).score += scoreGain;
+                    removeMissile();
                 }
             }
 
@@ -537,7 +548,7 @@ function sendUpdates() {
                         x: f.x,
                         y: f.y,
                         cell: f.cell,
-                        massTotal: Math.round(f.massTotal),
+                        score: Math.round(f.score),
                         hue: f.hue,
                         name: f.name
                     };
@@ -546,7 +557,7 @@ function sendUpdates() {
                     x: f.x,
                     y: f.y,
                     cell: f.cell,
-                    massTotal: Math.round(f.massTotal),
+                    score: Math.round(f.score),
                     hue: f.hue,
                 };
             })
